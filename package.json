@@ -39,7 +39,7 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "postinstall": "node copyAssets.js"
+    "copy-assets": "node copyAssets.js"
   },
   "dependencies": {
     "@babylonjs/core": "5.57.1",
