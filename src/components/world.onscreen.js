@@ -352,8 +352,10 @@ class WorldOnscreen {
 		}
 		// if the first position index is -1 then this die has been flagged as asleep
 		if(this.diceBufferView[bufferIndex + 1] === -1) {
-			this.handleAsleep(die)
-		} else {
+			if(!die.asleep) {
+				this.handleAsleep(die)
+			}
+		} else if(!die.asleep) {
 			const px = this.diceBufferView[bufferIndex + 1]
 			const py = this.diceBufferView[bufferIndex + 2]
 			const pz = this.diceBufferView[bufferIndex + 3]

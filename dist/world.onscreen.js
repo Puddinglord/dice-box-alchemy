@@ -13076,8 +13076,8 @@ class da {
         break;
       }
       if (this.diceBufferView[t + 1] === -1)
-        this.handleAsleep(s);
-      else {
+        s.asleep || this.handleAsleep(s);
+      else if (!s.asleep) {
         const n = this.diceBufferView[t + 1], a = this.diceBufferView[t + 2], o = this.diceBufferView[t + 3], l = this.diceBufferView[t + 4], d = this.diceBufferView[t + 5], h = this.diceBufferView[t + 6], c = this.diceBufferView[t + 7];
         s.mesh.position.set(n, a, o), s.mesh.rotationQuaternion.set(l, d, h, c);
       }
