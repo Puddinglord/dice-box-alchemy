@@ -268,7 +268,7 @@ class Sl {
   }
   // TODO: pass data with roll - such as roll name. Passed back at the end in the results
   roll(l, { theme: b = this.config.theme, themeColor: d = this.config.themeColor, newStartPoint: X = !0 } = {}) {
-    this.clear();
+    console.log("[dice-box roll] notation:", JSON.stringify(l), "theme:", b, "themeColor:", d), this.clear();
     const Z = f(this, x)._++;
     this.rollCollectionData[Z] = new A({
       id: Z,

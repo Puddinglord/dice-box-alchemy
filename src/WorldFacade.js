@@ -462,6 +462,7 @@ class WorldFacade {
 
 	// TODO: pass data with roll - such as roll name. Passed back at the end in the results
 	roll(notation, {theme = this.config.theme, themeColor = this.config.themeColor, newStartPoint = true} = {}) {
+		console.log('[dice-box roll] notation:', JSON.stringify(notation), 'theme:', theme, 'themeColor:', themeColor)
 		// note: to add to a roll on screen use .add method
 		// reset the offscreen worker and physics worker with each new roll
 		this.clear()
