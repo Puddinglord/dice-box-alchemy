@@ -269,7 +269,7 @@ class Dice {
       console.log('[correctToFace] target direction NOT found for value', targetValue)
       return
     }
-    console.log('[correctToFace] applying rotation for target', targetValue)
+    console.log('[correctToFace] applying rotation for target', targetValue, 'direction:', targetDirection.x.toFixed(4), targetDirection.y.toFixed(4), targetDirection.z.toFixed(4))
 
     // Calculate rotation from targetDirection to "up" (or "down" for d4)
     const upVector = (die.dieType === 'd4' && d4FaceDown)
@@ -278,11 +278,15 @@ class Dice {
 
     // Build a correction quaternion that rotates targetDirection to upVector
     const dot = Vector3.Dot(targetDirection, upVector)
+    console.log('[correctToFace] dot:', dot)
 
     if (Math.abs(dot - 1) < 0.001) {
-      // Already pointing the right way
+      console.log('[correctToFace] already correct')
       return
     }
+
+    const before = die.mesh.rotationQuaternion ? die.mesh.rotationQuaternion.clone() : null
+    console.log('[correctToFace] quat BEFORE:', before?.x.toFixed(4), before?.y.toFixed(4), before?.z.toFixed(4), before?.w.toFixed(4))
 
     let correctionQuat
     if (Math.abs(dot + 1) < 0.001) {
@@ -296,11 +300,17 @@ class Dice {
       const axis = Vector3.Cross(targetDirection, upVector).normalize()
       const angle = Math.acos(Math.max(-1, Math.min(1, dot)))
       correctionQuat = Quaternion.RotationAxis(axis, angle)
+      console.log('[correctToFace] axis:', axis.x.toFixed(4), axis.y.toFixed(4), axis.z.toFixed(4), 'angle:', angle.toFixed(4))
     }
 
     // Apply correction: new orientation = correction * current orientation
     if (die.mesh.rotationQuaternion) {
       die.mesh.rotationQuaternion = correctionQuat.multiply(die.mesh.rotationQuaternion)
+      const after = die.mesh.rotationQuaternion
+      console.log('[correctToFace] quat AFTER:', after.x.toFixed(4), after.y.toFixed(4), after.z.toFixed(4), after.w.toFixed(4))
+      die.mesh.computeWorldMatrix(true)
+    } else {
+      console.log('[correctToFace] NO rotationQuaternion!')
     }
   }
 

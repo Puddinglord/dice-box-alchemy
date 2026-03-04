@@ -396,6 +396,11 @@ class WorldOnscreen {
 			if(die.value !== target) {
 				console.log('[handleAsleep] correcting', die.dieType, 'from', die.value, 'to', target)
 				Dice.correctToFace(die, target, this.#scene)
+				// verify correction by re-reading the face
+				const verifyValue = die.value
+				await Dice.getRollResult(die, this.#scene)
+				console.log('[handleAsleep] VERIFY after correction: getRollResult says', die.value, '(wanted', target, ')')
+				die.value = verifyValue
 			} else {
 				console.log('[handleAsleep] value already matches, no correction needed')
 			}
