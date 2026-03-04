@@ -352,7 +352,7 @@ const addBoxToWorld = (size, height) => {
 
 	// Circular wall: 24 flat segments arranged in a ring
 	const wallSegments = 24
-	const radius = size / 2
+	const radius = size / 2 - 0.75
 	const wallThickness = 0.5
 	const segmentHalfWidth = radius * Math.sin(Math.PI / wallSegments)
 
