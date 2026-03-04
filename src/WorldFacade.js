@@ -14,6 +14,7 @@ const defaultOptions = {
 	preloadThemes: [],
 	externalThemes: {}, // point to CDN paths
 	themeColor: '#ffffff', // used for color values or named theme variants
+	numberInk: 'auto', // 'auto' | 'light' | 'dark' — controls the number texture on dice faces
 	offscreen: true, // use offscreen canvas browser feature for performance improvements - will fallback to false based on feature detection
 	assetPath: '/assets/dice-box/', // path to 'ammo', 'themes' folders and web workers
 	// origin: location.origin,
@@ -590,9 +591,13 @@ class WorldFacade {
 			let colorSuffix = '', color
 
 			if(materialType === "color") {
-				color = hexToRGB(themeColor)
-				// dat.gui uses HSB(a.k.a HSV) brightness greater than .5 and saturation less than .5
-				colorSuffix = ((color.r*0.299 + color.g*0.587 + color.b*0.114) > 175) ? '_dark' : '_light'
+				const numberInk = this.config.numberInk
+				if(numberInk === 'light' || numberInk === 'dark') {
+					colorSuffix = `_${numberInk}`
+				} else {
+					color = hexToRGB(themeColor)
+					colorSuffix = ((color.r*0.299 + color.g*0.587 + color.b*0.114) > 175) ? '_dark' : '_light'
+				}
 			}
 
 			// TODO: should I validate that added dice are only joining groups of the same "sides" value - e.g.: d6's can only be added to groups when sides: 6? Probably.

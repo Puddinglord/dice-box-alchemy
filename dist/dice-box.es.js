@@ -1,6 +1,6 @@
 var Jl = Object.defineProperty;
 var il = (c, l, b) => l in c ? Jl(c, l, { enumerable: !0, configurable: !0, writable: !0, value: b }) : c[l] = b;
-var H = (c, l, b) => (il(c, typeof l != "symbol" ? l + "" : l, b), b), r = (c, l, b) => {
+var e = (c, l, b) => (il(c, typeof l != "symbol" ? l + "" : l, b), b), r = (c, l, b) => {
   if (!l.has(c))
     throw TypeError("Cannot " + b);
 };
@@ -9,14 +9,14 @@ var W = (c, l, b) => (r(c, l, "read from private field"), b ? b.call(c) : l.get(
     throw TypeError("Cannot add the same private member more than once");
   l instanceof WeakSet ? l.add(c) : l.set(c, b);
 }, J = (c, l, b, d) => (r(c, l, "write to private field"), d ? d.call(c, b) : l.set(c, b), b);
-var e = (c, l, b, d) => ({
+var f = (c, l, b, d) => ({
   set _(X) {
     J(c, l, X, b);
   },
   get _() {
     return W(c, l, d);
   }
-}), o = (c, l, b) => (r(c, l, "access private method"), b);
+}), F = (c, l, b) => (r(c, l, "access private method"), b);
 function al(c) {
   const { selector: l, id: b } = c;
   let d = document.body, X = document.createElement("canvas");
@@ -121,6 +121,8 @@ const yl = {
   // point to CDN paths
   themeColor: "#ffffff",
   // used for color values or named theme variants
+  numberInk: "auto",
+  // 'auto' | 'light' | 'dark' — controls the number texture on dice faces
   offscreen: !0,
   // use offscreen canvas browser feature for performance improvements - will fallback to false based on feature detection
   assetPath: "/assets/dice-box/",
@@ -129,7 +131,7 @@ const yl = {
   origin: typeof window < "u" ? window.location.origin : "",
   suspendSimulation: !1
 };
-var f, C, U, k, u, Q, P, i, w, j, N, T, Wl, g, Vl, M, Rl, E, O, I, q;
+var x, C, U, k, u, Q, P, i, w, j, S, T, Wl, g, Vl, M, Rl, I, O, E, q;
 class Sl {
   constructor(l = {}) {
     // Load the BabylonJS World
@@ -138,14 +140,14 @@ class Sl {
     Y(this, g);
     Y(this, M);
     // used by both .add and .roll - .roll clears the box and .add does not
-    Y(this, E);
     Y(this, I);
-    H(this, "rollCollectionData", {});
-    H(this, "rollGroupData", {});
-    H(this, "rollDiceData", {});
-    H(this, "themeData", []);
-    H(this, "themesLoadedData", {});
-    Y(this, f, 0);
+    Y(this, E);
+    e(this, "rollCollectionData", {});
+    e(this, "rollGroupData", {});
+    e(this, "rollDiceData", {});
+    e(this, "themeData", []);
+    e(this, "themesLoadedData", {});
+    Y(this, x, 0);
     Y(this, C, 0);
     Y(this, U, 0);
     Y(this, k, 0);
@@ -155,8 +157,8 @@ class Sl {
     Y(this, i, void 0);
     Y(this, w, void 0);
     Y(this, j, void 0);
-    Y(this, N, !0);
-    H(this, "noop", () => {
+    Y(this, S, !0);
+    e(this, "noop", () => {
     });
     if (arguments.length === 2 && typeof (arguments[0] === "string") && typeof (arguments[1] === "object") && (console.warn("You are using the old API. Dicebox constructor accepts a config object as it's only argument. Please read the v1.1.0 docs at https://fantasticdice.games/docs/usage/config"), l = arguments[1], l.container = arguments[0]), typeof l != "object")
       throw new Error("Config options should be an object. Config reference: https://fantasticdice.games/docs/usage/config#configuration-options");
@@ -164,7 +166,7 @@ class Sl {
     this.config = { ...yl, ...R }, this.onBeforeRoll = l.onBeforeRoll || this.noop, this.onDieComplete = l.onDieComplete || this.noop, this.onRollComplete = l.onRollComplete || this.noop, this.onRemoveComplete = l.onRemoveComplete || this.noop, this.onThemeLoaded = l.onThemeLoaded || this.noop, this.onThemeConfigLoaded = l.onThemeConfigLoaded || this.noop, this.onCollision = l.onCollision || this.noop, Ll() ? (this.canvas = al({
       selector: this.config.container,
       id: this.config.id
-    }), this.isVisible = !0) : J(this, N, !1), this.loadThemeQueue = pl();
+    }), this.isVisible = !0) : J(this, S, !1), this.loadThemeQueue = pl();
   }
   resizeWorld() {
     const b = nl(() => {
@@ -173,7 +175,7 @@ class Sl {
     window.addEventListener("resize", b);
   }
   async init() {
-    return W(this, N) ? o(this, g, Vl).call(this) : J(this, w, Promise.resolve()), await o(this, T, Wl).call(this), this.resizeWorld(), W(this, u).onRollResult = (l) => {
+    return W(this, S) ? F(this, g, Vl).call(this) : J(this, w, Promise.resolve()), await F(this, T, Wl).call(this), this.resizeWorld(), W(this, u).onRollResult = (l) => {
       const b = this.rollDiceData[l.rollId], d = this.rollGroupData[b.groupId], X = this.rollCollectionData[b.collectionId];
       d.rolls[b.rollId].value = l.value, X.completedRolls++, X.completedRolls == X.rolls.length && X.resolve(Object.values(X.rolls).map(({ collectionId: G, id: R, meshName: L, ...y }) => y));
       const { collectionId: Z, id: m, ...V } = b;
@@ -186,11 +188,11 @@ class Sl {
       d.completedRolls++, delete this.rollDiceData[b.rollId];
       const X = this.rollGroupData[b.groupId];
       delete X.rolls[b.rollId];
-      const Z = o(this, I, q).call(this, b.groupId);
-      X.value = Z.value, X.qty = Z.rollsArray.length, d.completedRolls == d.rolls.length && d.resolve(Object.values(d.rolls).map(({ id: y, ...S }) => S));
+      const Z = F(this, E, q).call(this, b.groupId);
+      X.value = Z.value, X.qty = Z.rollsArray.length, d.completedRolls == d.rolls.length && d.resolve(Object.values(d.rolls).map(({ id: y, ...o }) => o));
       const { collectionId: m, id: V, removeCollectionId: G, meshName: R, ...L } = b;
       this.onRemoveComplete(L);
-    }, await Promise.all([W(this, Q), W(this, w)]), W(this, i) && o(this, M, Rl).call(this), await this.loadThemeQueue.push(() => this.loadTheme(this.config.theme)), this.config.preloadThemes.forEach((async function(l) {
+    }, await Promise.all([W(this, Q), W(this, w)]), W(this, i) && F(this, M, Rl).call(this), await this.loadThemeQueue.push(() => this.loadTheme(this.config.theme)), this.config.preloadThemes.forEach((async function(l) {
       await this.loadThemeQueue.push(() => this.loadTheme(l));
     }).bind(this)), this;
   }
@@ -254,7 +256,7 @@ class Sl {
     }), this;
   }
   clear() {
-    return J(this, f, 0), J(this, C, 0), J(this, U, 0), J(this, k, 0), this.rollCollectionData = {}, this.rollGroupData = {}, this.rollDiceData = {}, W(this, u).clear(), W(this, i) && W(this, i).postMessage({ action: "clearDice" }), this;
+    return J(this, x, 0), J(this, C, 0), J(this, U, 0), J(this, k, 0), this.rollCollectionData = {}, this.rollGroupData = {}, this.rollDiceData = {}, W(this, u).clear(), W(this, i) && W(this, i).postMessage({ action: "clearDice" }), this;
   }
   hide(l) {
     return l ? (this.canvas.dataset.hideClass = l, this.canvas.classList.add(l)) : this.canvas.style.display = "none", this.isVisible = !1, this;
@@ -267,7 +269,7 @@ class Sl {
   // TODO: pass data with roll - such as roll name. Passed back at the end in the results
   roll(l, { theme: b = this.config.theme, themeColor: d = this.config.themeColor, newStartPoint: X = !0 } = {}) {
     this.clear();
-    const Z = e(this, f)._++;
+    const Z = f(this, x)._++;
     this.rollCollectionData[Z] = new A({
       id: Z,
       notation: l,
@@ -276,10 +278,10 @@ class Sl {
       newStartPoint: X
     });
     const m = this.createNotationArray(l, this.themesLoadedData[b].diceAvailable);
-    return o(this, E, O).call(this, m, Z), this.rollCollectionData[Z].promise;
+    return F(this, I, O).call(this, m, Z), this.rollCollectionData[Z].promise;
   }
   add(l, { theme: b = this.config.theme, themeColor: d = this.config.themeColor, newStartPoint: X = !0 } = {}) {
-    const Z = e(this, f)._++;
+    const Z = f(this, x)._++;
     this.rollCollectionData[Z] = new A({
       id: Z,
       notation: l,
@@ -288,14 +290,14 @@ class Sl {
       newStartPoint: X
     });
     const m = this.createNotationArray(l, this.themesLoadedData[b].diceAvailable);
-    return o(this, E, O).call(this, m, Z), this.rollCollectionData[Z].promise;
+    return F(this, I, O).call(this, m, Z), this.rollCollectionData[Z].promise;
   }
   reroll(l, { remove: b = !1, hide: d = !1, newStartPoint: X = !0 } = {}) {
     const m = (Array.isArray(l) ? l : [l]).map(({ value: V, ...G }) => G);
     return b === !0 && this.remove(m, { hide: d }), this.add(m, { newStartPoint: X });
   }
   remove(l, { hide: b = !1 } = {}) {
-    const d = Array.isArray(l) ? l : [l], X = e(this, f)._++;
+    const d = Array.isArray(l) ? l : [l], X = f(this, x)._++;
     return this.rollCollectionData[X] = new A({
       id: X,
       notation: l,
@@ -339,43 +341,43 @@ class Sl {
     let G = null, R = l;
     const L = l.indexOf("@");
     L !== -1 && (G = l.substring(L + 1).split(",").map((p) => parseInt(p.trim(), 10)).filter((p) => !isNaN(p)), R = l.substring(0, L));
-    const y = R.trim().replace(/\s+/g, ""), S = (n, p) => {
-      if (n = Number(n), Number.isNaN(n) || !Number.isInteger(n) || n < 1)
+    const y = R.trim().replace(/\s+/g, ""), o = (a, p) => {
+      if (a = Number(a), Number.isNaN(a) || !Number.isInteger(a) || a < 1)
         throw new Error(p);
-      return n;
-    }, a = y.match(X) || y.match(d) || y.match(Z) || y.match(m);
-    let x = 0;
-    const K = "Invalid notation: " + l;
-    if (!a || !a.length || a.length < 3)
-      throw new Error(K);
-    if (a[3] && V.test(a[3])) {
-      const n = a[3].match(V);
-      let p = S(n[2], K);
-      n[1].trim() === "-" && (p *= -1), x = p;
+      return a;
+    }, h = y.match(X) || y.match(d) || y.match(Z) || y.match(m);
+    let K = 0;
+    const t = "Invalid notation: " + l;
+    if (!h || !h.length || h.length < 3)
+      throw new Error(t);
+    if (h[3] && V.test(h[3])) {
+      const a = h[3].match(V);
+      let p = o(a[2], t);
+      a[1].trim() === "-" && (p *= -1), K = p;
     }
-    const h = {
-      qty: S(a[1], K),
-      modifier: x
+    const n = {
+      qty: o(h[1], t),
+      modifier: K
     };
-    return y.match(X) ? (h.sides = "d100", h.data = "single") : y.match(Z) ? h.sides = "fate" : (b.includes(y.match(m)[2]), h.sides = a[2]), G && G.length > 0 && (h.predeterminedValues = G), h;
+    return y.match(X) ? (n.sides = "d100", n.data = "single") : y.match(Z) ? n.sides = "fate" : (b.includes(y.match(m)[2]), n.sides = h[2]), G && G.length > 0 && (n.predeterminedValues = G), n;
   }
   getRollResults() {
     return Object.entries(this.rollGroupData).map(([l, b]) => {
-      const d = o(this, I, q).call(this, l);
+      const d = F(this, E, q).call(this, l);
       b.value = d.value, b.qty = d.rollsArray.length;
       const X = { ...b };
       return X.rolls = d.rollsArray, X;
     });
   }
 }
-f = new WeakMap(), C = new WeakMap(), U = new WeakMap(), k = new WeakMap(), u = new WeakMap(), Q = new WeakMap(), P = new WeakMap(), i = new WeakMap(), w = new WeakMap(), j = new WeakMap(), N = new WeakMap(), T = new WeakSet(), Wl = async function() {
+x = new WeakMap(), C = new WeakMap(), U = new WeakMap(), k = new WeakMap(), u = new WeakMap(), Q = new WeakMap(), P = new WeakMap(), i = new WeakMap(), w = new WeakMap(), j = new WeakMap(), S = new WeakMap(), T = new WeakSet(), Wl = async function() {
   J(this, Q, new Promise((b, d) => {
     J(this, P, b);
   }));
   const l = () => {
     W(this, P).call(this);
   };
-  if (W(this, N))
+  if (W(this, S))
     if ("OffscreenCanvas" in window && "transferControlToOffscreen" in this.canvas && this.config.offscreen) {
       const b = await import("./world.offscreen.js").then((d) => d.default);
       J(this, u, new b({
@@ -424,7 +426,7 @@ f = new WeakMap(), C = new WeakMap(), U = new WeakMap(), k = new WeakMap(), u = 
   W(this, u).connect(l.port1), W(this, i).postMessage({
     action: "connect"
   }, [l.port2]);
-}, E = new WeakSet(), O = async function(l, b) {
+}, I = new WeakSet(), O = async function(l, b) {
   this.onBeforeRoll(l);
   const d = this.rollCollectionData[b];
   let X = d.newStartPoint;
@@ -437,61 +439,64 @@ f = new WeakMap(), C = new WeakMap(), U = new WeakMap(), k = new WeakMap(), u = 
     let L;
     const y = () => this.loadTheme(m);
     await this.loadThemeQueue.push(y);
-    let S = this.themesLoadedData[m].meshName, a = ($ = this.themesLoadedData[m]) == null ? void 0 : $.diceAvailable, x = this.themesLoadedData[m].diceExtended || {}, K = (ll = (_ = this.themesLoadedData[m]) == null ? void 0 : _.material) == null ? void 0 : ll.type;
-    const h = Object.keys(x);
-    if (h && h.includes(Z.sides)) {
-      m = x[Z.sides];
-      const t = () => this.loadTheme(m);
-      this.loadThemeQueue.push(t), S = this.themesLoadedData[m].meshName, a = (bl = this.themesLoadedData[m]) == null ? void 0 : bl.diceAvailable, K = (Xl = (dl = this.themesLoadedData[m]) == null ? void 0 : dl.material) == null ? void 0 : Xl.type;
+    let o = this.themesLoadedData[m].meshName, h = ($ = this.themesLoadedData[m]) == null ? void 0 : $.diceAvailable, K = this.themesLoadedData[m].diceExtended || {}, t = (ll = (_ = this.themesLoadedData[m]) == null ? void 0 : _.material) == null ? void 0 : ll.type;
+    const n = Object.keys(K);
+    if (n && n.includes(Z.sides)) {
+      m = K[Z.sides];
+      const N = () => this.loadTheme(m);
+      this.loadThemeQueue.push(N), o = this.themesLoadedData[m].meshName, h = (bl = this.themesLoadedData[m]) == null ? void 0 : bl.diceAvailable, t = (Xl = (dl = this.themesLoadedData[m]) == null ? void 0 : dl.material) == null ? void 0 : Xl.type;
     }
-    let n = "", p;
-    K === "color" && (p = sl(V), n = p.r * 0.299 + p.g * 0.587 + p.b * 0.114 > 175 ? "_dark" : "_light");
+    let a = "", p;
+    if (t === "color") {
+      const N = this.config.numberInk;
+      N === "light" || N === "dark" ? a = `_${N}` : (p = sl(V), a = p.r * 0.299 + p.g * 0.587 + p.b * 0.114 > 175 ? "_dark" : "_light");
+    }
     for (var D = 0, ul = Z.qty; D < ul; D++) {
-      let t = Z.rollId !== void 0 ? Z.rollId : e(this, U)._++, Yl = Z.id !== void 0 ? Z.id : e(this, k)._++;
+      let N = Z.rollId !== void 0 ? Z.rollId : f(this, U)._++, Yl = Z.id !== void 0 ? Z.id : f(this, k)._++;
       L = R ? Z.groupId : W(this, C);
-      const F = Number.isInteger(Z.sides) ? `d${Z.sides}` : Z.sides;
+      const H = Number.isInteger(Z.sides) ? `d${Z.sides}` : Z.sides;
       /^d[1-9]{1}[0-9]{0,1}0?$/.test(Z.sides) && (Z.sides = parseInt(Z.sides.replace("d", "")));
       const z = (Zl = Z.predeterminedValues) == null ? void 0 : Zl[D], s = {
         sides: Z.sides,
         data: Z.data,
-        dieType: F,
+        dieType: H,
         groupId: L,
         collectionId: d.id,
-        rollId: t,
+        rollId: N,
         id: Yl,
         theme: m,
         themeColor: V,
-        meshName: S,
+        meshName: o,
         ...z !== void 0 && { predeterminedValue: z }
       };
-      if (G[t] = s, this.rollDiceData[t] = s, d.rolls.push(this.rollDiceData[t]), s.sides === "fate" && !a.includes(F) && !h.includes(F) || s.sides === "fate" && !W(this, N)) {
+      if (G[N] = s, this.rollDiceData[N] = s, d.rolls.push(this.rollDiceData[N]), s.sides === "fate" && !h.includes(H) && !n.includes(H) || s.sides === "fate" && !W(this, S)) {
         console.warn(`fate die unavailable in '${m}' theme. Using fallback.`);
         const v = -1, B = 1;
         s.value = z !== void 0 ? z : cl.range(v, B), W(this, u).addNonDie(s);
-      } else if (this.config.suspendSimulation || !a.includes(F) && !h.includes(F) || !W(this, N)) {
-        const v = W(this, N) ? this.config.suspendSimulation ? "3D simulation suspended. Using fallback." : `${s.sides} die unavailable in '${m}' theme. Using fallback.` : "This browser does not support webGL. Using random number fallback.";
+      } else if (this.config.suspendSimulation || !h.includes(H) && !n.includes(H) || !W(this, S)) {
+        const v = W(this, S) ? this.config.suspendSimulation ? "3D simulation suspended. Using fallback." : `${s.sides} die unavailable in '${m}' theme. Using fallback.` : "This browser does not support webGL. Using random number fallback.";
         console.warn(v);
         const B = Number.isInteger(s.sides) ? s.sides : parseInt(s.sides.replace(/\D/g, ""));
         s.value = z !== void 0 ? z : cl.range(1, B), W(this, u).addNonDie(s);
       } else {
         let v;
-        if (h.includes(F)) {
-          const B = x[F];
+        if (n.includes(H)) {
+          const B = K[H];
           v = this.themesLoadedData[B];
         }
         W(this, u).add({
           ...s,
           newStartPoint: X,
           theme: (v == null ? void 0 : v.systemName) || m,
-          meshName: (v == null ? void 0 : v.meshName) || S,
-          colorSuffix: n
+          meshName: (v == null ? void 0 : v.meshName) || o,
+          colorSuffix: a
         });
       }
       X = !1;
     }
-    R ? Object.assign(this.rollGroupData[L].rolls, G) : (Z.rolls = G, Z.id = L, this.rollGroupData[L] = Z, ++e(this, C)._);
+    R ? Object.assign(this.rollGroupData[L].rolls, G) : (Z.rolls = G, Z.id = L, this.rollGroupData[L] = Z, ++f(this, C)._);
   });
-}, I = new WeakSet(), q = function(l) {
+}, E = new WeakSet(), q = function(l) {
   const b = this.rollGroupData[l], d = Object.values(b.rolls).map(({ collectionId: Z, id: m, meshName: V, ...G }) => G);
   let X = d.reduce((Z, m) => {
     const V = isNaN(m.value) ? 0 : m.value;
