@@ -33305,13 +33305,19 @@ const Ke = class Ke {
   }
 };
 hi = new WeakSet(), ys = function() {
-  const e = [];
-  for (let t = -1; t <= 1; t++)
-    for (let i = -1; i <= 1; i++)
-      for (let s = -1; s <= 1; s++)
-        t === 0 && i === 0 && s === 0 || e.push(new p(t, i, s).normalize());
-  return e;
-}, // Generate 26 probe directions (6 axis-aligned + 12 edge + 8 corner directions)
+  const t = [], i = (1 + Math.sqrt(5)) / 2;
+  for (let s = 0; s < 120; s++) {
+    const r = Math.acos(1 - 2 * (s + 0.5) / 120), n = 2 * Math.PI * s / i;
+    t.push(new p(
+      Math.sin(r) * Math.cos(n),
+      Math.sin(r) * Math.sin(n),
+      Math.cos(r)
+    ).normalize());
+  }
+  return t;
+}, // Generate uniformly distributed probe directions on a sphere using a
+// Fibonacci spiral. 26 cubic directions aren't enough for a d20 whose
+// face normals involve the golden ratio.
 ki(Ke, hi), Ut(Ke, "ray", new ie(p.Zero(), p.Zero(), 1)), Ut(Ke, "vector3", p.Zero());
 let ns = Ke;
 export {

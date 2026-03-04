@@ -296,16 +296,21 @@ class Dice {
     }
   }
 
-  // Generate 26 probe directions (6 axis-aligned + 12 edge + 8 corner directions)
+  // Generate uniformly distributed probe directions on a sphere using a
+  // Fibonacci spiral. 26 cubic directions aren't enough for a d20 whose
+  // face normals involve the golden ratio.
   static #getProbeDirections() {
+    const count = 120
     const dirs = []
-    for (let x = -1; x <= 1; x++) {
-      for (let y = -1; y <= 1; y++) {
-        for (let z = -1; z <= 1; z++) {
-          if (x === 0 && y === 0 && z === 0) continue
-          dirs.push(new Vector3(x, y, z).normalize())
-        }
-      }
+    const goldenRatio = (1 + Math.sqrt(5)) / 2
+    for (let i = 0; i < count; i++) {
+      const theta = Math.acos(1 - 2 * (i + 0.5) / count)
+      const phi = 2 * Math.PI * i / goldenRatio
+      dirs.push(new Vector3(
+        Math.sin(theta) * Math.cos(phi),
+        Math.sin(theta) * Math.sin(phi),
+        Math.cos(theta)
+      ).normalize())
     }
     return dirs
   }
