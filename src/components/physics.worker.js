@@ -232,15 +232,26 @@ const setVector3 = (x,y,z) => {
 }
 
 const setStartPosition = () => {
-	const radius = config.size / 2
-	const edgeOffset = 0.5
-	const angle = Math.random() * 2 * Math.PI
-	const startRadius = radius - edgeOffset
+	let size = config.size
+	// let envelopeSize = size * .6 / 2
+	let edgeOffset = .5
+	let xMin = size * aspect / 2 - edgeOffset
+	let xMax = size * aspect / -2 + edgeOffset
+	let yMin = size / 2 - edgeOffset
+	let yMax = size / -2 + edgeOffset
+	// let xEnvelope = lerp(envelopeSize * aspect - edgeOffset * aspect, -envelopeSize * aspect + edgeOffset * aspect, Math.random())
+	let xEnvelope = lerp(xMin, xMax, Math.random())
+	let yEnvelope = lerp(yMin, yMax, Math.random())
+	let tossFromTop = Math.round(Math.random())
+	let tossFromLeft = Math.round(Math.random())
+	let tossX = Math.round(Math.random())
 
 	config.startPosition = [
-		startRadius * Math.cos(angle),
+		// tossing on x axis then z should be locked to top or bottom
+		// not tossing on x axis then x should be locked to the left or right
+		tossX ? xEnvelope : tossFromLeft ? xMax : xMin,
 		config.startingHeight,
-		startRadius * Math.sin(angle)
+		tossX ? tossFromTop ? yMax : yMin : yEnvelope
 	]
 }
 
@@ -350,48 +361,57 @@ const addBoxToWorld = (size, height) => {
 	physicsWorld.addRigidBody(ceilingBody)
 	tempParts.push(ceilingBody)
 
-	// Circular wall using convex hull segments — vertices are in world
-	// coordinates so no rotation is needed (avoids btQuaternion issues in
-	// this ammo.js WASM build).
-	const wallSegments = 24
-	const radius = 3.0 // TEST value — production should be ~size/2
-	const wallThickness = 1.0
-	const outerRadius = radius + wallThickness
+	const wallTopTransform = new Ammo.btTransform()
+	wallTopTransform.setIdentity()
+	wallTopTransform.setOrigin(setVector3(0, 0, (size/-2) - .5))
+	const wallTopShape = new Ammo.btBoxShape(setVector3(size * aspect, height, 1))
+	const topMotionState = new Ammo.btDefaultMotionState(wallTopTransform)
+	const topInfo = new Ammo.btRigidBodyConstructionInfo(0, topMotionState, wallTopShape, localInertia)
+	const topBody = new Ammo.btRigidBody(topInfo)
+	topBody.id='box_wall_north'
+	topBody.setFriction(config.friction)
+	topBody.setRestitution(config.restitution)
+	physicsWorld.addRigidBody(topBody)
+	tempParts.push(topBody)
 
-	for (let i = 0; i < wallSegments; i++) {
-		const a1 = (2 * Math.PI * i) / wallSegments
-		const a2 = (2 * Math.PI * (i + 1)) / wallSegments
+	const wallBottomTransform = new Ammo.btTransform()
+	wallBottomTransform.setIdentity()
+	wallBottomTransform.setOrigin(setVector3(0, 0, (size/2) + .5))
+	const wallBottomShape = new Ammo.btBoxShape(setVector3(size * aspect, height, 1))
+	const bottomMotionState = new Ammo.btDefaultMotionState(wallBottomTransform)
+	const bottomInfo = new Ammo.btRigidBodyConstructionInfo(0, bottomMotionState, wallBottomShape, localInertia)
+	const bottomBody = new Ammo.btRigidBody(bottomInfo)
+	bottomBody.id='box_wall_south'
+	bottomBody.setFriction(config.friction)
+	bottomBody.setRestitution(config.restitution)
+	physicsWorld.addRigidBody(bottomBody)
+	tempParts.push(bottomBody)
 
-		const cos1 = Math.cos(a1)
-		const sin1 = Math.sin(a1)
-		const cos2 = Math.cos(a2)
-		const sin2 = Math.sin(a2)
+	const wallRightTransform = new Ammo.btTransform()
+	wallRightTransform.setIdentity()
+	wallRightTransform.setOrigin(setVector3((size * aspect / -2) - .5, 0, 0))
+	const wallRightShape = new Ammo.btBoxShape(setVector3(1, height, size))
+	const rightMotionState = new Ammo.btDefaultMotionState(wallRightTransform)
+	const rightInfo = new Ammo.btRigidBodyConstructionInfo(0, rightMotionState, wallRightShape, localInertia)
+	const rightBody = new Ammo.btRigidBody(rightInfo)
+	rightBody.id='box_wall_east'
+	rightBody.setFriction(config.friction)
+	rightBody.setRestitution(config.restitution)
+	physicsWorld.addRigidBody(rightBody)
+	tempParts.push(rightBody)
 
-		const wallHull = new Ammo.btConvexHullShape()
-		// Bottom 4 vertices
-		wallHull.addPoint(setVector3(radius * cos1, -1, radius * sin1), true)
-		wallHull.addPoint(setVector3(radius * cos2, -1, radius * sin2), true)
-		wallHull.addPoint(setVector3(outerRadius * cos1, -1, outerRadius * sin1), true)
-		wallHull.addPoint(setVector3(outerRadius * cos2, -1, outerRadius * sin2), true)
-		// Top 4 vertices
-		wallHull.addPoint(setVector3(radius * cos1, height, radius * sin1), true)
-		wallHull.addPoint(setVector3(radius * cos2, height, radius * sin2), true)
-		wallHull.addPoint(setVector3(outerRadius * cos1, height, outerRadius * sin1), true)
-		wallHull.addPoint(setVector3(outerRadius * cos2, height, outerRadius * sin2), true)
-
-		const wallTransform = new Ammo.btTransform()
-		wallTransform.setIdentity()
-		// No translation or rotation — hull vertices are already in world space
-
-		const wallMotionState = new Ammo.btDefaultMotionState(wallTransform)
-		const wallInfo = new Ammo.btRigidBodyConstructionInfo(0, wallMotionState, wallHull, localInertia)
-		const wallBody = new Ammo.btRigidBody(wallInfo)
-		wallBody.id = `box_wall_${i}`
-		wallBody.setFriction(config.friction)
-		wallBody.setRestitution(config.restitution)
-		physicsWorld.addRigidBody(wallBody)
-		tempParts.push(wallBody)
-	}
+	const wallLeftTransform = new Ammo.btTransform()
+	wallLeftTransform.setIdentity()
+	wallLeftTransform.setOrigin(setVector3((size * aspect / 2) + .5, 0, 0))
+	const wallLeftShape = new Ammo.btBoxShape(setVector3(1, height, size))
+	const leftMotionState = new Ammo.btDefaultMotionState(wallLeftTransform)
+	const leftInfo = new Ammo.btRigidBodyConstructionInfo(0, leftMotionState, wallLeftShape, localInertia)
+	const leftBody = new Ammo.btRigidBody(leftInfo)
+	leftBody.id='box_wall_west'
+	leftBody.setFriction(config.friction)
+	leftBody.setRestitution(config.restitution)
+	physicsWorld.addRigidBody(leftBody)
+	tempParts.push(leftBody)
 
 	if(boxParts.length){
 		removeBoxFromWorld()
