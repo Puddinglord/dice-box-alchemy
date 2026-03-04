@@ -382,10 +382,19 @@ class WorldOnscreen {
 	async handleAsleep(die){
 		// mark this die as asleep
 		die.asleep = true
-	
+
 		// get the roll result for this die
 		await Dice.getRollResult(die, this.#scene)
-	
+
+		// apply predetermined value correction if specified
+		if(die.config.predeterminedValue !== undefined && die.mesh) {
+			const target = die.config.predeterminedValue
+			if(die.value !== target) {
+				Dice.correctToFace(die, target, this.#scene)
+			}
+			die.value = target
+		}
+
 		if(die.d10Instance || die.dieParent) {
 			// if one of the pair is asleep and the other isn't then it falls through without getting the roll result
 			// otherwise both dice in the d100 are asleep and ready to calc their roll result
@@ -400,7 +409,7 @@ class WorldOnscreen {
 				d100.rawValue = d100.value
 
 				d100.value = d100.value + d10.value
-	
+
 				this.onRollResult({
 					rollId: d100.config.rollId,
 					value : d100.value

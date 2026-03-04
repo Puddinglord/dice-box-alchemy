@@ -610,6 +610,9 @@ class WorldFacade {
           notation.sides =  parseInt(notation.sides.replace('d', ''))
         }
 
+				// Assign predetermined value for this die (if available)
+				const predeterminedValue = notation.predeterminedValues?.[i]
+
 				const roll = {
 					sides: notation.sides,
 					data: notation.data,
@@ -620,7 +623,8 @@ class WorldFacade {
 					id,
 					theme,
 					themeColor,
-					meshName
+					meshName,
+					...(predeterminedValue !== undefined && { predeterminedValue })
 				}
 
 				rolls[rollId] = roll
@@ -632,19 +636,19 @@ class WorldFacade {
 					console.warn(`fate die unavailable in '${theme}' theme. Using fallback.`)
 					const min = -1
 					const max = 1
-					roll.value = Random.range(min,max)
+					roll.value = predeterminedValue !== undefined ? predeterminedValue : Random.range(min,max)
 					this.#DiceWorld.addNonDie(roll)
 				} else if(this.config.suspendSimulation || (!diceAvailable.includes(dieType) && !diceExtra.includes(dieType)) || !this.#webgl_support){
 					// check if the requested roll is available in the current theme, if not then use crypto fallback
-					const warning = 
-					!this.#webgl_support 
-						? `This browser does not support webGL. Using random number fallback.` 
-						: this.config.suspendSimulation 
-							? "3D simulation suspended. Using fallback." 
+					const warning =
+					!this.#webgl_support
+						? `This browser does not support webGL. Using random number fallback.`
+						: this.config.suspendSimulation
+							? "3D simulation suspended. Using fallback."
 							: `${roll.sides} die unavailable in '${theme}' theme. Using fallback.`
 					console.warn(warning)
 					const max = Number.isInteger(roll.sides) ? roll.sides : parseInt(roll.sides.replace(/\D/g,''))
-					roll.value = Random.range(1, max)
+					roll.value = predeterminedValue !== undefined ? predeterminedValue : Random.range(1, max)
 					this.#DiceWorld.addNonDie(roll)
 				} else {
 					let extendedTheme
@@ -743,6 +747,7 @@ class WorldFacade {
 
   // parse text die notation such as 2d10+3 => {number:2, type:6, modifier:3}
   // taken from https://github.com/ChapelR/dice-notation
+  // Extended to support predetermined values via @ syntax: "2d20@18,5"
   parse(notation, diceAvailable) {
     const diceNotation = /(\d+)([dD]{1}\d+)(.*)$/i
 		const percentNotation = /(\d+)[dD](00|%)(.*)$/i
@@ -750,7 +755,18 @@ class WorldFacade {
 		// const customNotation = /(\d+)[dD](.*)([+-])/i
 		const customNotation = /(\d+)[dD]([\d\w]+)([+-]{0,1}\d+)?/i
     const modifier = /([+-])(\d+)/
-    const cleanNotation = notation.trim().replace(/\s+/g, '')
+
+    // Extract predetermined values before cleaning notation
+    let predeterminedValues = null
+    let rawNotation = notation
+    const atIndex = notation.indexOf('@')
+    if (atIndex !== -1) {
+      const valuesStr = notation.substring(atIndex + 1)
+      predeterminedValues = valuesStr.split(',').map(v => parseInt(v.trim(), 10)).filter(v => !isNaN(v))
+      rawNotation = notation.substring(0, atIndex)
+    }
+
+    const cleanNotation = rawNotation.trim().replace(/\s+/g, '')
     const validNumber = (n, err) => {
       n = Number(n)
       if (Number.isNaN(n) || !Number.isInteger(n) || n < 1) {
@@ -792,6 +808,10 @@ class WorldFacade {
 		} else {
 			returnObj.sides = roll[2];
 		}
+
+    if (predeterminedValues && predeterminedValues.length > 0) {
+      returnObj.predeterminedValues = predeterminedValues
+    }
 
     return returnObj
   }

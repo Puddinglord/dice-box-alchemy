@@ -1,5 +1,5 @@
 import { SceneLoader } from '@babylonjs/core/Loading/sceneLoader'
-import { Vector3 } from '@babylonjs/core/Maths/math.vector'
+import { Quaternion, Vector3 } from '@babylonjs/core/Maths/math.vector'
 import { Color3 } from '@babylonjs/core/Maths/math.color'
 import { Ray } from "@babylonjs/core/Culling/ray";
 // import { RayHelper } from '@babylonjs/core/Debug';
@@ -205,6 +205,109 @@ class Dice {
   
   static getVector3() {
     return Dice.vector3
+  }
+
+  /**
+   * Rotates a die mesh so that a target face value points upward.
+   * Used for predetermined results — physics runs normally, then we
+   * correct the visual orientation after the die settles.
+   */
+  static correctToFace(die, targetValue, scene) {
+    if (!die.mesh) {
+      return
+    }
+
+    const meshName = die.config.parentMesh || die.config.meshName
+    const meshFaceIds = scene.themeData[meshName].colliderFaceMap
+    const d4FaceDown = scene.themeData[meshName].d4FaceDown
+    const faceMap = meshFaceIds[die.dieType]
+
+    if (!faceMap) {
+      return
+    }
+
+    // Probe directions around the die to find where each face value is
+    const colliderName = `${meshName}_${die.dieType}_collider`
+    const colliderBase = scene.getMeshByName(colliderName)
+    if (!colliderBase) {
+      return
+    }
+
+    const hitbox = colliderBase.createInstance(`${colliderName}-probe-${die.id}`)
+    hitbox.isPickable = true
+    hitbox.isVisible = true
+    hitbox.setEnabled(true)
+    hitbox.position = die.mesh.position
+    hitbox.rotationQuaternion = die.mesh.rotationQuaternion
+
+    // Try many directions to find which direction yields the target value
+    const ray = new Ray(die.mesh.position.clone(), Vector3.Zero(), 1)
+    const directions = Dice.#getProbeDirections()
+    let targetDirection = null
+
+    for (const dir of directions) {
+      ray.direction = dir
+      const picked = scene.pickWithRay(ray)
+      if (picked && picked.faceId !== undefined) {
+        const value = faceMap[picked.faceId]
+        if (value === targetValue) {
+          targetDirection = dir.clone()
+          break
+        }
+      }
+    }
+
+    hitbox.dispose()
+
+    if (!targetDirection) {
+      return
+    }
+
+    // Calculate rotation from targetDirection to "up" (or "down" for d4)
+    const upVector = (die.dieType === 'd4' && d4FaceDown)
+      ? new Vector3(0, -1, 0)
+      : new Vector3(0, 1, 0)
+
+    // Build a correction quaternion that rotates targetDirection to upVector
+    const dot = Vector3.Dot(targetDirection, upVector)
+
+    if (Math.abs(dot - 1) < 0.001) {
+      // Already pointing the right way
+      return
+    }
+
+    let correctionQuat
+    if (Math.abs(dot + 1) < 0.001) {
+      // Opposite direction — rotate 180 degrees around any perpendicular axis
+      const perp = Math.abs(targetDirection.x) < 0.9
+        ? new Vector3(1, 0, 0)
+        : new Vector3(0, 0, 1)
+      const axis = Vector3.Cross(targetDirection, perp).normalize()
+      correctionQuat = Quaternion.RotationAxis(axis, Math.PI)
+    } else {
+      const axis = Vector3.Cross(targetDirection, upVector).normalize()
+      const angle = Math.acos(Math.max(-1, Math.min(1, dot)))
+      correctionQuat = Quaternion.RotationAxis(axis, angle)
+    }
+
+    // Apply correction: new orientation = correction * current orientation
+    if (die.mesh.rotationQuaternion) {
+      die.mesh.rotationQuaternion = correctionQuat.multiply(die.mesh.rotationQuaternion)
+    }
+  }
+
+  // Generate 26 probe directions (6 axis-aligned + 12 edge + 8 corner directions)
+  static #getProbeDirections() {
+    const dirs = []
+    for (let x = -1; x <= 1; x++) {
+      for (let y = -1; y <= 1; y++) {
+        for (let z = -1; z <= 1; z++) {
+          if (x === 0 && y === 0 && z === 0) continue
+          dirs.push(new Vector3(x, y, z).normalize())
+        }
+      }
+    }
+    return dirs
   }
 
   static async getRollResult(die,scene) {
