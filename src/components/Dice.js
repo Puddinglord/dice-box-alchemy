@@ -304,11 +304,16 @@ class Dice {
     }
 
     // Apply correction: new orientation = correction * current orientation
+    // Use copyFrom to mutate in-place (replacing the reference can break
+    // BabylonJS's InstancedMesh dirty tracking)
     if (die.mesh.rotationQuaternion) {
-      die.mesh.rotationQuaternion = correctionQuat.multiply(die.mesh.rotationQuaternion)
+      const corrected = correctionQuat.multiply(die.mesh.rotationQuaternion)
+      die.mesh.rotationQuaternion.copyFrom(corrected)
       const after = die.mesh.rotationQuaternion
       console.log('[correctToFace] quat AFTER:', after.x.toFixed(4), after.y.toFixed(4), after.z.toFixed(4), after.w.toFixed(4))
       die.mesh.computeWorldMatrix(true)
+      // Force an immediate render so the corrected orientation is visible
+      scene.render()
     } else {
       console.log('[correctToFace] NO rotationQuaternion!')
     }

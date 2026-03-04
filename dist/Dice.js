@@ -33303,9 +33303,10 @@ const Ke = class Ke {
       M = K.RotationAxis(R, A), console.log("[correctToFace] axis:", R.x.toFixed(4), R.y.toFixed(4), R.z.toFixed(4), "angle:", A.toFixed(4));
     }
     if (e.mesh.rotationQuaternion) {
-      e.mesh.rotationQuaternion = M.multiply(e.mesh.rotationQuaternion);
-      const R = e.mesh.rotationQuaternion;
-      console.log("[correctToFace] quat AFTER:", R.x.toFixed(4), R.y.toFixed(4), R.z.toFixed(4), R.w.toFixed(4)), e.mesh.computeWorldMatrix(!0);
+      const R = M.multiply(e.mesh.rotationQuaternion);
+      e.mesh.rotationQuaternion.copyFrom(R);
+      const A = e.mesh.rotationQuaternion;
+      console.log("[correctToFace] quat AFTER:", A.x.toFixed(4), A.y.toFixed(4), A.z.toFixed(4), A.w.toFixed(4)), e.mesh.computeWorldMatrix(!0), i.render();
     } else
       console.log("[correctToFace] NO rotationQuaternion!");
   }
