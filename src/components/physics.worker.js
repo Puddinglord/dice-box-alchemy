@@ -365,9 +365,9 @@ const addBoxToWorld = (size, height) => {
 		wallTransform.setIdentity()
 		wallTransform.setOrigin(setVector3(centerX, 0, centerZ))
 
-		// Rotate around Y-axis so the flat face points inward
-		const halfAngle = angle / 2
-		const quat = new Ammo.btQuaternion(0, Math.sin(halfAngle), 0, Math.cos(halfAngle))
+		// Rotate around Y-axis so the wide face is tangent to the circle
+		const rotAngle = angle + Math.PI / 2
+		const quat = new Ammo.btQuaternion(0, Math.sin(rotAngle / 2), 0, Math.cos(rotAngle / 2))
 		wallTransform.setRotation(quat)
 
 		const wallShape = new Ammo.btBoxShape(setVector3(segmentHalfWidth, height, wallThickness))
