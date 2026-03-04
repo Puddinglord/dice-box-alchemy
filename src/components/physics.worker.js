@@ -350,35 +350,33 @@ const addBoxToWorld = (size, height) => {
 	physicsWorld.addRigidBody(ceilingBody)
 	tempParts.push(ceilingBody)
 
-	// Circular wall: 24 flat segments arranged in a ring
+	// Circular wall: 24 infinite half-space planes forming a sealed polygon.
+	// btStaticPlaneShape has no edges or gaps — dice cannot escape.
+	// Plane equation: normal.dot(point) + planeConstant = 0
+	// Objects are valid on the side where normal.dot(point) + planeConstant > 0
 	const wallSegments = 24
 	const radius = size / 2 - 0.75
-	const wallThickness = 0.5
-	const segmentHalfWidth = radius * Math.sin(Math.PI / wallSegments)
 
 	for (let i = 0; i < wallSegments; i++) {
 		const angle = (2 * Math.PI * i) / wallSegments
-		const centerX = radius * Math.cos(angle)
-		const centerZ = radius * Math.sin(angle)
 
-		const wallTransform = new Ammo.btTransform()
-		wallTransform.setIdentity()
-		wallTransform.setOrigin(setVector3(centerX, 0, centerZ))
+		// Normal pointing inward toward center
+		const normalX = -Math.cos(angle)
+		const normalZ = -Math.sin(angle)
 
-		// Rotate around Y-axis so the wide face is tangent to the circle
-		const rotAngle = angle + Math.PI / 2
-		const quat = new Ammo.btQuaternion(0, Math.sin(rotAngle / 2), 0, Math.cos(rotAngle / 2))
-		wallTransform.setRotation(quat)
+		const planeShape = new Ammo.btStaticPlaneShape(setVector3(normalX, 0, normalZ), radius)
 
-		const wallShape = new Ammo.btBoxShape(setVector3(segmentHalfWidth, height, wallThickness))
-		const wallMotionState = new Ammo.btDefaultMotionState(wallTransform)
-		const wallInfo = new Ammo.btRigidBodyConstructionInfo(0, wallMotionState, wallShape, localInertia)
-		const wallBody = new Ammo.btRigidBody(wallInfo)
-		wallBody.id = `box_wall_${i}`
-		wallBody.setFriction(config.friction)
-		wallBody.setRestitution(config.restitution)
-		physicsWorld.addRigidBody(wallBody)
-		tempParts.push(wallBody)
+		const planeTransform = new Ammo.btTransform()
+		planeTransform.setIdentity()
+
+		const motionState = new Ammo.btDefaultMotionState(planeTransform)
+		const planeInfo = new Ammo.btRigidBodyConstructionInfo(0, motionState, planeShape, localInertia)
+		const planeBody = new Ammo.btRigidBody(planeInfo)
+		planeBody.id = `wall_plane_${i}`
+		planeBody.setFriction(config.friction)
+		planeBody.setRestitution(config.restitution)
+		physicsWorld.addRigidBody(planeBody)
+		tempParts.push(planeBody)
 	}
 
 	if(boxParts.length){
