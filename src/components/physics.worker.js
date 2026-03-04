@@ -351,11 +351,11 @@ const addBoxToWorld = (size, height) => {
 	tempParts.push(ceilingBody)
 
 	// Circular wall: overlapping btBoxShape segments forming a sealed ring.
-	// Segments are 2x wider than exact fit so they overlap at every seam,
-	// and thick enough that no die can wedge through.
+	// Segments are 2x wider than exact fit so they overlap at every seam.
+	// Wall thickness is kept thin — overlap handles the seam gaps.
 	const wallSegments = 32
-	const radius = size / 2 - 0.75
-	const wallThickness = 1.5
+	const radius = size / 2 - 0.25
+	const wallThickness = 0.5
 	const segmentHalfWidth = radius * Math.sin(Math.PI / wallSegments) * 2
 
 	for (let i = 0; i < wallSegments; i++) {
