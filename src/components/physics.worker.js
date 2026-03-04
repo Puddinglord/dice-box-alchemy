@@ -232,37 +232,16 @@ const setVector3 = (x,y,z) => {
 }
 
 const setStartPosition = () => {
-	let size = config.size
-	// let envelopeSize = size * .6 / 2
-	let edgeOffset = .5
-	let xMin = size * aspect / 2 - edgeOffset
-	let xMax = size * aspect / -2 + edgeOffset
-	let yMin = size / 2 - edgeOffset
-	let yMax = size / -2 + edgeOffset
-	// let xEnvelope = lerp(envelopeSize * aspect - edgeOffset * aspect, -envelopeSize * aspect + edgeOffset * aspect, Math.random())
-	let xEnvelope = lerp(xMin, xMax, Math.random())
-	let yEnvelope = lerp(yMin, yMax, Math.random())
-	let tossFromTop = Math.round(Math.random())
-	let tossFromLeft = Math.round(Math.random())
-	let tossX = Math.round(Math.random())
-	// console.log(`throw coming from`, tossX ? tossFromTop ? "top" : "bottom" : tossFromLeft ? "left" : "right")
-
-	// forces = {
-	// 	xMinForce: tossX ? -config.throwForce * aspect : tossFromLeft ? config.throwForce * aspect * .3 : -config.throwForce * aspect * .3,
-	// 	xMaxForce: tossX ? config.throwForce * aspect : tossFromLeft ? config.throwForce * aspect * 1 : -config.throwForce * aspect * 1,
-	// 	zMinForce: tossX ? tossFromTop ? config.throwForce * .3 : -config.throwForce * .3 : -config.throwForce,
-	// 	zMaxForce: tossX ? tossFromTop ? config.throwForce * 1 : -config.throwForce * 1 : config.throwForce,
-	// }
+	const radius = config.size / 2
+	const edgeOffset = 0.5
+	const angle = Math.random() * 2 * Math.PI
+	const startRadius = radius - edgeOffset
 
 	config.startPosition = [
-		// tossing on x axis then z should be locked to top or bottom
-		// not tossing on x axis then x should be locked to the left or right
-		tossX ? xEnvelope : tossFromLeft ? xMax : xMin,
+		startRadius * Math.cos(angle),
 		config.startingHeight,
-		tossX ? tossFromTop ? yMax : yMin : yEnvelope
+		startRadius * Math.sin(angle)
 	]
-
-	// console.log(`startPosition`, config.startPosition)
 }
 
 const createConvexHull = (mesh) => {
@@ -371,57 +350,36 @@ const addBoxToWorld = (size, height) => {
 	physicsWorld.addRigidBody(ceilingBody)
 	tempParts.push(ceilingBody)
 
-	const wallTopTransform = new Ammo.btTransform()
-	wallTopTransform.setIdentity()
-	wallTopTransform.setOrigin(setVector3(0, 0, (size/-2) - .5))
-	const wallTopShape = new Ammo.btBoxShape(setVector3(size * aspect, height, 1))
-	const topMotionState = new Ammo.btDefaultMotionState(wallTopTransform)
-	const topInfo = new Ammo.btRigidBodyConstructionInfo(0, topMotionState, wallTopShape, localInertia)
-	const topBody = new Ammo.btRigidBody(topInfo)
-	topBody.id='box_wall_north'
-	topBody.setFriction(config.friction)
-	topBody.setRestitution(config.restitution)
-	physicsWorld.addRigidBody(topBody)
-	tempParts.push(topBody)
+	// Circular wall: 24 flat segments arranged in a ring
+	const wallSegments = 24
+	const radius = size / 2
+	const wallThickness = 0.5
+	const segmentHalfWidth = radius * Math.sin(Math.PI / wallSegments)
 
-	const wallBottomTransform = new Ammo.btTransform()
-	wallBottomTransform.setIdentity()
-	wallBottomTransform.setOrigin(setVector3(0, 0, (size/2) + .5))
-	const wallBottomShape = new Ammo.btBoxShape(setVector3(size * aspect, height, 1))
-	const bottomMotionState = new Ammo.btDefaultMotionState(wallBottomTransform)
-	const bottomInfo = new Ammo.btRigidBodyConstructionInfo(0, bottomMotionState, wallBottomShape, localInertia)
-	const bottomBody = new Ammo.btRigidBody(bottomInfo)
-	bottomBody.id='box_wall_south'
-	bottomBody.setFriction(config.friction)
-	bottomBody.setRestitution(config.restitution)
-	physicsWorld.addRigidBody(bottomBody)
-	tempParts.push(bottomBody)
+	for (let i = 0; i < wallSegments; i++) {
+		const angle = (2 * Math.PI * i) / wallSegments
+		const centerX = radius * Math.cos(angle)
+		const centerZ = radius * Math.sin(angle)
 
-	const wallRightTransform = new Ammo.btTransform()
-	wallRightTransform.setIdentity()
-	wallRightTransform.setOrigin(setVector3((size * aspect / -2) - .5, 0, 0))
-	const wallRightShape = new Ammo.btBoxShape(setVector3(1, height, size))
-	const rightMotionState = new Ammo.btDefaultMotionState(wallRightTransform)
-	const rightInfo = new Ammo.btRigidBodyConstructionInfo(0, rightMotionState, wallRightShape, localInertia)
-	const rightBody = new Ammo.btRigidBody(rightInfo)
-	rightBody.id='box_wall_east'
-	rightBody.setFriction(config.friction)
-	rightBody.setRestitution(config.restitution)
-	physicsWorld.addRigidBody(rightBody)
-	tempParts.push(rightBody)
+		const wallTransform = new Ammo.btTransform()
+		wallTransform.setIdentity()
+		wallTransform.setOrigin(setVector3(centerX, 0, centerZ))
 
-	const wallLeftTransform = new Ammo.btTransform()
-	wallLeftTransform.setIdentity()
-	wallLeftTransform.setOrigin(setVector3((size * aspect / 2) + .5, 0, 0))
-	const wallLeftShape = new Ammo.btBoxShape(setVector3(1, height, size))
-	const leftMotionState = new Ammo.btDefaultMotionState(wallLeftTransform)
-	const leftInfo = new Ammo.btRigidBodyConstructionInfo(0, leftMotionState, wallLeftShape, localInertia)
-	const leftBody = new Ammo.btRigidBody(leftInfo)
-	leftBody.id='box_wall_west'
-	leftBody.setFriction(config.friction)
-	leftBody.setRestitution(config.restitution)
-	physicsWorld.addRigidBody(leftBody)
-	tempParts.push(leftBody)
+		// Rotate around Y-axis so the flat face points inward
+		const halfAngle = angle / 2
+		const quat = new Ammo.btQuaternion(0, Math.sin(halfAngle), 0, Math.cos(halfAngle))
+		wallTransform.setRotation(quat)
+
+		const wallShape = new Ammo.btBoxShape(setVector3(segmentHalfWidth, height, wallThickness))
+		const wallMotionState = new Ammo.btDefaultMotionState(wallTransform)
+		const wallInfo = new Ammo.btRigidBodyConstructionInfo(0, wallMotionState, wallShape, localInertia)
+		const wallBody = new Ammo.btRigidBody(wallInfo)
+		wallBody.id = `box_wall_${i}`
+		wallBody.setFriction(config.friction)
+		wallBody.setRestitution(config.restitution)
+		physicsWorld.addRigidBody(wallBody)
+		tempParts.push(wallBody)
+	}
 
 	if(boxParts.length){
 		removeBoxFromWorld()
