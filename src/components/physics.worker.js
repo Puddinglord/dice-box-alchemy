@@ -350,31 +350,41 @@ const addBoxToWorld = (size, height) => {
 	physicsWorld.addRigidBody(ceilingBody)
 	tempParts.push(ceilingBody)
 
-	// Circular wall: overlapping btBoxShape segments forming a sealed ring.
-	// Segments are 2x wider than exact fit so they overlap at every seam.
-	// Wall thickness is kept thin — overlap handles the seam gaps.
-	const wallSegments = 32
-	const radius = 3.0
-	const wallThickness = 0.5
-	const segmentHalfWidth = radius * Math.sin(Math.PI / wallSegments) * 2
+	// Circular wall using convex hull segments — vertices are in world
+	// coordinates so no rotation is needed (avoids btQuaternion issues in
+	// this ammo.js WASM build).
+	const wallSegments = 24
+	const radius = 3.0 // TEST value — production should be ~size/2
+	const wallThickness = 1.0
+	const outerRadius = radius + wallThickness
 
 	for (let i = 0; i < wallSegments; i++) {
-		const angle = (2 * Math.PI * i) / wallSegments
-		const centerX = radius * Math.cos(angle)
-		const centerZ = radius * Math.sin(angle)
+		const a1 = (2 * Math.PI * i) / wallSegments
+		const a2 = (2 * Math.PI * (i + 1)) / wallSegments
+
+		const cos1 = Math.cos(a1)
+		const sin1 = Math.sin(a1)
+		const cos2 = Math.cos(a2)
+		const sin2 = Math.sin(a2)
+
+		const wallHull = new Ammo.btConvexHullShape()
+		// Bottom 4 vertices
+		wallHull.addPoint(setVector3(radius * cos1, -1, radius * sin1), true)
+		wallHull.addPoint(setVector3(radius * cos2, -1, radius * sin2), true)
+		wallHull.addPoint(setVector3(outerRadius * cos1, -1, outerRadius * sin1), true)
+		wallHull.addPoint(setVector3(outerRadius * cos2, -1, outerRadius * sin2), true)
+		// Top 4 vertices
+		wallHull.addPoint(setVector3(radius * cos1, height, radius * sin1), true)
+		wallHull.addPoint(setVector3(radius * cos2, height, radius * sin2), true)
+		wallHull.addPoint(setVector3(outerRadius * cos1, height, outerRadius * sin1), true)
+		wallHull.addPoint(setVector3(outerRadius * cos2, height, outerRadius * sin2), true)
 
 		const wallTransform = new Ammo.btTransform()
 		wallTransform.setIdentity()
-		wallTransform.setOrigin(setVector3(centerX, 0, centerZ))
+		// No translation or rotation — hull vertices are already in world space
 
-		// Rotate around Y-axis so the wide face is tangent to the circle
-		const rotAngle = angle + Math.PI / 2
-		const quat = new Ammo.btQuaternion(0, Math.sin(rotAngle / 2), 0, Math.cos(rotAngle / 2))
-		wallTransform.setRotation(quat)
-
-		const wallShape = new Ammo.btBoxShape(setVector3(segmentHalfWidth, height, wallThickness))
 		const wallMotionState = new Ammo.btDefaultMotionState(wallTransform)
-		const wallInfo = new Ammo.btRigidBodyConstructionInfo(0, wallMotionState, wallShape, localInertia)
+		const wallInfo = new Ammo.btRigidBodyConstructionInfo(0, wallMotionState, wallHull, localInertia)
 		const wallBody = new Ammo.btRigidBody(wallInfo)
 		wallBody.id = `box_wall_${i}`
 		wallBody.setFriction(config.friction)
