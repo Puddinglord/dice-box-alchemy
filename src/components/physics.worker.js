@@ -354,7 +354,7 @@ const addBoxToWorld = (size, height) => {
 	// Segments are 2x wider than exact fit so they overlap at every seam.
 	// Wall thickness is kept thin — overlap handles the seam gaps.
 	const wallSegments = 32
-	const radius = size / 2 - 0.25
+	const radius = 3.0
 	const wallThickness = 0.5
 	const segmentHalfWidth = radius * Math.sin(Math.PI / wallSegments) * 2
 
