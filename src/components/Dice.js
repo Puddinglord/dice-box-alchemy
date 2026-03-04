@@ -213,7 +213,9 @@ class Dice {
    * correct the visual orientation after the die settles.
    */
   static correctToFace(die, targetValue, scene) {
+    console.log('[correctToFace] called for', die.dieType, 'target:', targetValue, 'current:', die.value)
     if (!die.mesh) {
+      console.log('[correctToFace] no mesh, returning')
       return
     }
 
@@ -230,6 +232,7 @@ class Dice {
     const colliderName = `${meshName}_${die.dieType}_collider`
     const colliderBase = scene.getMeshByName(colliderName)
     if (!colliderBase) {
+      console.log('[correctToFace] no collider base mesh:', colliderName)
       return
     }
 
@@ -245,23 +248,28 @@ class Dice {
     const directions = Dice.#getProbeDirections()
     let targetDirection = null
 
+    const foundValues = new Set()
     for (const dir of directions) {
       ray.direction = dir
       const picked = scene.pickWithRay(ray)
       if (picked && picked.faceId !== undefined) {
         const value = faceMap[picked.faceId]
+        foundValues.add(value)
         if (value === targetValue) {
           targetDirection = dir.clone()
           break
         }
       }
     }
+    console.log('[correctToFace] found values:', [...foundValues], 'target:', targetValue, 'found:', !!targetDirection)
 
     hitbox.dispose()
 
     if (!targetDirection) {
+      console.log('[correctToFace] target direction NOT found for value', targetValue)
       return
     }
+    console.log('[correctToFace] applying rotation for target', targetValue)
 
     // Calculate rotation from targetDirection to "up" (or "down" for d4)
     const upVector = (die.dieType === 'd4' && d4FaceDown)

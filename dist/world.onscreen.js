@@ -13093,9 +13093,9 @@ class da {
   // handle the position updates from the physics worker. It's a simple flat array of numbers for quick and easy transfer
   async handleAsleep(e) {
     var t, i;
-    if (e.asleep = !0, await be.getRollResult(e, C(this, K)), e.config.predeterminedValue !== void 0 && e.mesh) {
+    if (e.asleep = !0, await be.getRollResult(e, C(this, K)), console.log("[handleAsleep]", e.dieType, "rolled:", e.value, "predetermined:", e.config.predeterminedValue), e.config.predeterminedValue !== void 0 && e.mesh) {
       const r = e.config.predeterminedValue;
-      e.value !== r && be.correctToFace(e, r, C(this, K)), e.value = r;
+      e.value !== r ? (console.log("[handleAsleep] correcting", e.dieType, "from", e.value, "to", r), be.correctToFace(e, r, C(this, K))) : console.log("[handleAsleep] value already matches, no correction needed"), e.value = r;
     }
     if (e.d10Instance || e.dieParent) {
       if ((t = e == null ? void 0 : e.d10Instance) != null && t.asleep || (i = e == null ? void 0 : e.dieParent) != null && i.asleep) {

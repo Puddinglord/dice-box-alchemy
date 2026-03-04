@@ -386,11 +386,16 @@ class WorldOnscreen {
 		// get the roll result for this die
 		await Dice.getRollResult(die, this.#scene)
 
+		console.log('[handleAsleep]', die.dieType, 'rolled:', die.value, 'predetermined:', die.config.predeterminedValue)
+
 		// apply predetermined value correction if specified
 		if(die.config.predeterminedValue !== undefined && die.mesh) {
 			const target = die.config.predeterminedValue
 			if(die.value !== target) {
+				console.log('[handleAsleep] correcting', die.dieType, 'from', die.value, 'to', target)
 				Dice.correctToFace(die, target, this.#scene)
+			} else {
+				console.log('[handleAsleep] value already matches, no correction needed')
 			}
 			die.value = target
 		}

@@ -816,6 +816,7 @@ class WorldFacade {
 
     if (predeterminedValues && predeterminedValues.length > 0) {
       returnObj.predeterminedValues = predeterminedValues
+      console.log('[parse] notation:', notation, 'predeterminedValues:', predeterminedValues)
     }
 
     return returnObj
