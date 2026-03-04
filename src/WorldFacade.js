@@ -13,7 +13,7 @@ const defaultOptions = {
 	theme: 'default', // can be a hex color or a pre-defined theme such as 'purpleRock'
 	preloadThemes: [],
 	externalThemes: {}, // point to CDN paths
-	themeColor: '#2e8555', // used for color values or named theme variants - not fully implemented yet // green: #2e8555 // yellow: #feea03
+	themeColor: '#ffffff', // used for color values or named theme variants
 	offscreen: true, // use offscreen canvas browser feature for performance improvements - will fallback to false based on feature detection
 	assetPath: '/assets/dice-box/', // path to 'ammo', 'themes' folders and web workers
 	// origin: location.origin,
